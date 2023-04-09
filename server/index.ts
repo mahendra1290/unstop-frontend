@@ -1,8 +1,9 @@
 import express, { json, urlencoded } from "express";
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { MongoClient, ObjectId, WithId, WithoutId } from "mongodb";
 import * as dotenv from "dotenv";
 import { bookTickets } from "./src/bookingManager";
 import cors from "cors";
+import { createEmptyCoach, createFilledCoach } from "./src/utils";
 const app = express();
 const port = 3000;
 
@@ -11,7 +12,7 @@ for (let i = 0; i < 80; i++) {
   if (i % 7 === 0) {
     coach.push([]);
   }
-  coach.at(-1)?.push({ number: i + 1, status: "vacant" });
+  coach.at(-1)?.push({ number: i + 1, status: "available" });
 }
 
 dotenv.config();
@@ -35,27 +36,62 @@ app.use(json());
 app.use(urlencoded({ extended: false }));
 
 app.get("/coach", async (req, res) => {
-  // const doc = await coaches.findOne<WithId<{ coach: Seat[][] }>>();
+  const doc = await coaches.findOne<WithId<Coach>>();
 
-  res.json({ status: "success", id: "33", coach: coach }).status(200);
+  res
+    .json({
+      status: "success",
+      coach: doc,
+    })
+    .status(200);
 });
 
 app.post("/book", async (req, res) => {
-  if (!req.body || !req.body.seats || !req.body.id) {
+  if (!req.body || !req.body.seats) {
     res.json({ message: "bad request" }).status(400);
     return;
   }
 
-  const { seats, id } = req.body;
-  const { seatMap, bookedSeats } = bookTickets(seats, coach);
-  // const filter = { _id: new ObjectId(id) };
-  // const updateDoc = {
-  //   $set: {
-  //     coach: seatMap,
-  //   },
-  // };
-  // await coaches.updateOne(filter, updateDoc);
-  res.json({ status: "success", seatNumbers: bookedSeats, seatMap: seatMap });
+  const { seats } = req.body;
+  const coachDoc = await coaches.findOne<Coach>({
+    defaultCoach: true,
+  });
+  if (coachDoc) {
+    const { coachSeats, bookedSeats } = bookTickets(seats, coachDoc);
+    const filter = { defaultCoach: true };
+    const updateDoc = {
+      $set: coachSeats,
+    };
+    await coaches.updateOne(filter, updateDoc);
+    res.json({
+      status: "success",
+      seatNumbers: bookedSeats,
+      coach: coachSeats,
+    });
+  } else {
+    res.json({ status: "failed", seatNumbers: [], seatMap: [] });
+  }
+});
+
+app.post("/reset", async (req, res) => {
+  const emptyCoach = createEmptyCoach();
+  const filter = { defaultCoach: true };
+  const updateDoc = { $set: emptyCoach };
+  await coaches.updateOne(filter, updateDoc);
+  res.json({ status: "success", coach: emptyCoach }).status(200);
+});
+
+app.post("/autofill", async (req, res) => {
+  const doc = await coaches.findOne<Coach>();
+  if (!doc) {
+    res.json({ message: "Failed to auto fill" }).status(200);
+    return;
+  }
+  const autofilledCoach = createFilledCoach(doc);
+  const filter = { defaultCoach: true };
+  const updateDoc = { $set: autofilledCoach };
+  await coaches.updateOne(filter, updateDoc);
+  res.json({ status: "success", coach: autofilledCoach }).status(200);
 });
 
 app.listen(port, () => {
