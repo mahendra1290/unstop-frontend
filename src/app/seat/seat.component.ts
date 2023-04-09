@@ -6,5 +6,5 @@ import { Component, Input } from "@angular/core";
 })
 export class SeatComponent {
   @Input() seatNumber: string = "";
-  @Input() status: "vacant" | "booked" | "recent" = "vacant";
+  @Input() status: "available" | "recent" | "reserved" = "available";
 }

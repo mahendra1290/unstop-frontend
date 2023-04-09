@@ -1,36 +1,43 @@
 <nav class="p-4 bg-blue-200 shadow-md">
   <span class="text-gray-900">Unstop Reservation System</span>
 </nav>
-<section class="flex p-4 mt-4">
+<section class="flex p-4">
   <div class="w-1/2">
-    <input
-      placeholder="number of passengers"
-      type="number"
-      class="border p-2"
-      [formControl]="numberOfSeats"
-    />
-    <button
-      [disabled]="errorMessage !== ''"
-      (click)="bookTickets()"
-      class="border ml-2 text-sm p-2 disabled:bg-gray-100 rounded-sm"
-    >
-      Book
-    </button>
-    <ng-container
-      *ngIf="
-        numberOfSeats.errors && (numberOfSeats.touched || numberOfSeats.dirty)
-      "
-    >
-      <p class="text-red-400 text-xs mt-1" *ngIf="errorMessage">
-        {{ errorMessage }}
+    <div>
+      <input
+        placeholder="number of passengers"
+        type="number"
+        class="border border-gray-400 p-2"
+        [formControl]="numberOfSeats"
+      />
+      <button
+        primary-button
+        class="ml-2"
+        [disabled]="errorMessage !== ''"
+        (click)="bookTickets()"
+      >
+        {{ loading ? "loading..." : "book" }}
+      </button>
+      <ng-container
+        *ngIf="
+          numberOfSeats.errors && (numberOfSeats.touched || numberOfSeats.dirty)
+        "
+      >
+        <p class="text-red-400 text-xs mt-1" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </p>
+      </ng-container>
+    </div>
+    <div class="mt-4 font-mono" *ngIf="bookedSeats.length">
+      <span>Your seat number: </span>
+      <p *ngFor="let seat of bookedSeats; index as i">
+        P{{ i + 1 }}: {{ seat }}
       </p>
-    </ng-container>
-    <p class="mt-4" *ngIf="bookedSeats.length">
-      <span>Your seat number</span>
-      <span *ngFor="let seat of bookedSeats">
-        {{ seat }}
-      </span>
-    </p>
+    </div>
+    <div class="flex mt-4 gap-2">
+      <button primary-button (click)="resetCoach()">reset</button>
+      <button primary-button (click)="autofillCoach()">auto-fill</button>
+    </div>
   </div>
-  <app-coach [bookedSeats]="bookedSeats" [seatMap]="seatMap" />
+  <app-coach [bookedSeats]="bookedSeats" [coach]="coach" />
 </section>

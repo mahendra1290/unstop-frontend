@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { FormControl, Validators } from "@angular/forms";
-import { Seat } from "src/types";
+import { Coach, Seat } from "src/types";
 
 @Component({
   selector: "app-root",
@@ -9,22 +9,40 @@ import { Seat } from "src/types";
 })
 export class AppComponent {
   title = "unstop-reservation";
-
   numberOfSeats = new FormControl("", {
     validators: [Validators.required, Validators.min(1), Validators.max(7)],
     updateOn: "change",
   });
 
-  handleSubmit(e: SubmitEvent) {
-    e.preventDefault();
-  }
-
-  seatMap: Seat[][] = [];
+  coach: Coach | null = null;
   bookedSeats: number[] = [];
   coachId = "";
+  loading = false;
 
   constructor() {
     this.getCoach();
+  }
+
+  async resetCoach() {
+    const res = await fetch("http://localhost:3000/reset", {
+      method: "POST",
+    });
+    const resJson = await res.json();
+    if (resJson.status === "success") {
+      this.coach = resJson.coach;
+      this.bookedSeats = [];
+    }
+  }
+
+  async autofillCoach() {
+    const res = await fetch("http://localhost:3000/autofill", {
+      method: "POST",
+    });
+    const resJson = await res.json();
+    if (resJson.status === "success") {
+      this.coach = resJson.coach;
+      this.bookedSeats = [];
+    }
   }
 
   async getCoach() {
@@ -35,12 +53,13 @@ export class AppComponent {
       },
     });
     const resJson = await res.json();
-    this.seatMap = resJson.coach;
-    this.coachId = resJson.id;
+    console.log("res", resJson);
+    this.coach = resJson.coach;
     console.log(resJson);
   }
 
   async bookTickets() {
+    this.loading = true;
     const seatsCount = Number(this.numberOfSeats.value);
     const res = await fetch("http://localhost:3000/book", {
       method: "POST",
@@ -50,11 +69,12 @@ export class AppComponent {
       body: JSON.stringify({ id: this.coachId, seats: seatsCount }),
     });
     const resJson = await res.json();
-    this.seatMap = resJson.seatMap;
+    this.coach = resJson.seatMap;
     this.bookedSeats = resJson.seatNumbers;
     this.numberOfSeats.setValue("");
     this.numberOfSeats.markAsPristine();
     this.numberOfSeats.markAsUntouched();
+    this.loading = false;
   }
 
   get errorMessage() {

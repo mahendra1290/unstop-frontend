@@ -6,12 +6,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CoachComponent } from './coach/coach.component';
 import { SeatComponent } from './seat/seat.component';
+import { PrimaryButtonDirective } from './primary-button.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     CoachComponent,
-    SeatComponent
+    SeatComponent,
+    PrimaryButtonDirective
   ],
   imports: [
     BrowserModule,

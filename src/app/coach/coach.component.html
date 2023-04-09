@@ -1,23 +1,25 @@
-<div class="border border-gray-600 p-4 rounded-md w-fit">
+<div class="border border-gray-300 p-4 rounded-md w-fit">
   <div
     class="flex gap-2 w-fit mb-4"
     *ngFor="let seatsRowWise of seatMap; index as i"
   >
     <app-seat
+      [class.ml-4]="j === 3"
       *ngFor="let seat of seatsRowWise; index as j"
       [seatNumber]="seat.number.toString()"
       [status]="bookedSeats.includes(seat.number) ? 'recent' : seat.status"
     />
   </div>
 </div>
+<hr class="w-full border-gray-300 my-4" />
 <div class="flex mt-4 flex-col gap-2 text-sm">
   <div class="flex gap-2 items-center">
-    <app-seat status="booked" />
+    <app-seat status="reserved" />
     <span>Reserved</span>
   </div>
   <div class="flex gap-2 items-center">
-    <app-seat status="vacant" />
-    <span>Un-reserved</span>
+    <app-seat status="available" />
+    <span>Unreserved</span>
   </div>
   <div class="flex gap-2 items-center">
     <app-seat status="recent" />

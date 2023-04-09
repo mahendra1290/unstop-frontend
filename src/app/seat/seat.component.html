@@ -1,9 +1,10 @@
 <p
-  class="p-1 flex justify-center text-sm items-center border-2 border-gray-600 h-8 w-8 rounded-md shadow-sm text-center"
-  [class.bg-blue-400]="status == 'booked'"
-  [class.text-white]="status == 'booked'"
-  [class.bg-green-400]="status == 'recent'"
-  [class.bg-gray-100]="status == 'vacant'"
+  class="p-1 flex justify-center text-sm items-center h-8 w-8 rounded-md shadow-sm text-center"
+  [ngClass]="{
+    'bg-blue-400 text-white': status === 'reserved',
+    'bg-green-400': status === 'recent',
+    'bg-gray-200': status === 'available'
+  }"
 >
   {{ seatNumber }}
 </p>

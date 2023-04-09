@@ -1,6 +1,10 @@
-type Seat = {
+export type Seat = {
   number: number;
-  status: "vacant" | "booked";
+  status: "available" | "reserved";
 };
 
-export { Seat };
+export type Coach = {
+  totalSeats: number;
+  seatsPerRow: number;
+  reservedSeats: number[];
+};
