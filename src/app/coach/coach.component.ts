@@ -22,6 +22,7 @@ export class CoachComponent {
         status: isReserved ? "reserved" : "available",
       });
     }
+
     this.seatMap = seatMap;
   }
 

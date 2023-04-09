@@ -35,7 +35,7 @@ export class AppComponent {
   }
 
   async autofillCoach() {
-    const res = await fetch("http://localhost:3000/autofill", {
+    const res = await fetch("http://localhost:3000/randomfill", {
       method: "POST",
     });
     const resJson = await res.json();
@@ -69,7 +69,7 @@ export class AppComponent {
       body: JSON.stringify({ id: this.coachId, seats: seatsCount }),
     });
     const resJson = await res.json();
-    this.coach = resJson.seatMap;
+    this.coach = resJson.coach;
     this.bookedSeats = resJson.seatNumbers;
     this.numberOfSeats.setValue("");
     this.numberOfSeats.markAsPristine();
