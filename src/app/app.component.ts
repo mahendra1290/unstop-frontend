@@ -1,7 +1,9 @@
 import { Component } from "@angular/core";
 import { FormControl, Validators } from "@angular/forms";
-import { Coach, Seat } from "src/types";
+import { environment } from "src/environments/environment";
+import { Coach } from "src/types";
 
+const { apiBaseUrl } = environment;
 @Component({
   selector: "app-root",
   templateUrl: "./app.component.html",
@@ -24,7 +26,7 @@ export class AppComponent {
   }
 
   async resetCoach() {
-    const res = await fetch("http://localhost:3000/reset", {
+    const res = await fetch(apiBaseUrl + "/reset", {
       method: "POST",
     });
     const resJson = await res.json();
@@ -35,7 +37,7 @@ export class AppComponent {
   }
 
   async autofillCoach() {
-    const res = await fetch("http://localhost:3000/randomfill", {
+    const res = await fetch(apiBaseUrl + "/randomfill", {
       method: "POST",
     });
     const resJson = await res.json();
@@ -46,7 +48,7 @@ export class AppComponent {
   }
 
   async getCoach() {
-    const res = await fetch("http://localhost:3000/coach", {
+    const res = await fetch(apiBaseUrl + "/coach", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +63,7 @@ export class AppComponent {
   async bookTickets() {
     this.loading = true;
     const seatsCount = Number(this.numberOfSeats.value);
-    const res = await fetch("http://localhost:3000/book", {
+    const res = await fetch(apiBaseUrl + "/book", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
