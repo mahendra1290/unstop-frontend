@@ -56,6 +56,15 @@ app.post("/book", async (req, res) => {
   const coachDoc = await coaches.findOne<Coach>({
     defaultCoach: true,
   });
+  if (!coachDoc) {
+    res.json({ status: "failed", message: "Unable to get coach" }).status(200);
+    return;
+  }
+  const availableSeats = coachDoc?.totalSeats - coachDoc?.reservedSeats.length;
+  if (availableSeats < seats) {
+    res.json({ status: "failed", message: `${seats} seats are not available` });
+    return;
+  }
   if (coachDoc) {
     const { coachSeats, bookedSeats } = bookTickets(seats, coachDoc);
     const filter = { defaultCoach: true };
@@ -81,7 +90,7 @@ app.post("/reset", async (req, res) => {
   res.json({ status: "success", coach: emptyCoach }).status(200);
 });
 
-app.post("/autofill", async (req, res) => {
+app.post("/randomfill", async (req, res) => {
   const doc = await coaches.findOne<Coach>();
   if (!doc) {
     res.json({ message: "Failed to auto fill" }).status(200);

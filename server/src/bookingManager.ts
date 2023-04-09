@@ -1,24 +1,40 @@
 import { createSeatMap } from "./utils";
 
-/**
- * Mark the bookedSeats as booked
- * @param bookedSeats booked tickets
- * @param coachSeats coach seats
- * @returns updated coach seats
- */
-const markTicketBooked = (bookedSeats: number[], coachSeats: Seat[][]) => {
-  const coachSeatsCopy = [...coachSeats];
-  for (let i = 0; i < coachSeatsCopy.length; i++) {
-    for (let j = 0; j < coachSeatsCopy[i].length; j++) {
-      if (bookedSeats.includes(coachSeatsCopy[i][j].number)) {
-        if (coachSeatsCopy[i][j].status === "reserved") {
-          throw new Error("Error: can not reserve already reserved seat");
-        }
-        coachSeatsCopy[i][j].status = "reserved";
-      }
+const canBookInSameRow = (seatsToBook: number, row: Seat[]) => {
+  return (
+    row.filter((seat) => seat.status === "available").length >= seatsToBook
+  );
+};
+
+const reserveSeatsInRow = (
+  seatsToBook: number,
+  row: Seat[],
+): { reservedSeats: number[]; closeness: number } => {
+  const continuosSeats: number[][] = [];
+  let i = 0;
+  while (i < row.length) {
+    const seats: number[] = [];
+    while (i < row.length && row[i].status == "available") {
+      seats.push(row[i].number);
+      i++;
+    }
+    if (seats.length > 0) {
+      continuosSeats.push(seats);
+    }
+    i++;
+  }
+  continuosSeats.sort((groupA, groupB) => groupB.length - groupA.length);
+  let bookedSeats: number[] = [];
+  let cost = 0;
+  for (let group of continuosSeats) {
+    if (bookedSeats.length < seatsToBook) {
+      bookedSeats = bookedSeats.concat(
+        group.slice(0, Math.min(seatsToBook, group.length)),
+      );
+      cost += 1;
     }
   }
-  return coachSeatsCopy;
+  return { reservedSeats: bookedSeats, closeness: cost };
 };
 
 /**
@@ -37,19 +53,46 @@ const tryBookingInSameRow = (
   }
   const seatsCopy = [...coachSeats];
   let bookedSeats: number[] = [];
+  let minCloseness = 10000;
   for (let i = 0; i < seatsCopy.length; i++) {
-    const row = [...seatsCopy[i]];
-    const emptySeats = row.filter((seat) => seat.status === "available");
-    const availableSeats = emptySeats.length;
-    if (availableSeats >= seatsToBook) {
-      for (let i = 0; i < seatsToBook; i++) {
-        bookedSeats.push(emptySeats[i].number);
+    if (canBookInSameRow(seatsToBook, seatsCopy[i])) {
+      const { reservedSeats, closeness } = reserveSeatsInRow(
+        seatsToBook,
+        seatsCopy[i],
+      );
+      if (closeness < minCloseness) {
+        bookedSeats = reservedSeats;
+        minCloseness = closeness;
       }
-
-      break;
     }
   }
   return bookedSeats.length ? bookedSeats : null;
+};
+
+const bookSeats = (
+  rowIndex: number,
+  totalSeats: number,
+  bookedSeats: number,
+  seatMap: Seat[][],
+): number => {
+  if (rowIndex === bookSeats.length) {
+    return 1000000;
+  }
+  if (totalSeats === bookedSeats) {
+    return 0;
+  }
+  let c = 10000;
+  for (let i = 0; i < 7; i++) {
+    if (seatMap[rowIndex][i].status === "available") {
+      seatMap[rowIndex][i].status = "reserved";
+      const take = bookSeats(rowIndex, totalSeats, bookedSeats - 1, seatMap);
+      const notTake = bookSeats(rowIndex, totalSeats, bookedSeats, seatMap);
+      seatMap[rowIndex][i].status = "available";
+      c = Math.min(c, Math.min(take, notTake));
+    }
+  }
+  const n = bookSeats(rowIndex + 1, totalSeats, bookedSeats, seatMap);
+  return Math.min(c, n);
 };
 
 const bookTickets = (
